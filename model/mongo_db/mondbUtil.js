@@ -88,7 +88,7 @@ function insertDocuments(db, documents) {
     let promise = new Promise(function(resolve, reject) {
         const dbo = db.db(dbName);
         const collection = dbo.collection(dbCollection);
-        collection.ensureIndex({name:"text"});
+        collection.createIndexes({name:"text"});
         collection.insertMany( documents, function(err, result) {
             if (err) {
                 reject(err);
