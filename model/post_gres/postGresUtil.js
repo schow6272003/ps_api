@@ -12,17 +12,26 @@ function PostGresUtils(){};
 
 function connectToPostGres() {
   let promise = new Promise(function(resolve, reject){
-    const sequelize = new Sequelize('peerstreet', process.env.DB_USER, 'password', {
-        host: process.env.DB_HOST,
-        port: 5432,
-        dialect: 'postgres',
-        logging: false,
-        pool: {
-          max: 90,
-          min: 0,
-          idle: 10000
-        }
-      })
+     let sequelize
+
+    if (process.env.DATABASE_URL) {
+        sequelize = new Sequelize(process.env.DATABASE_URL, {
+          dialect:  'postgres',
+          protocol: 'postgres'
+        })
+      } else {
+        sequelize = new Sequelize('peerstreet', process.env.DB_USER, 'password', {
+            host: process.env.DB_HOST,
+            port: 5432,
+            dialect: 'postgres',
+            logging: false,
+            pool: {
+              max: 90,
+              min: 0,
+              idle: 10000
+            }
+          })
+      }
     resolve(sequelize);
   });
   return promise;
