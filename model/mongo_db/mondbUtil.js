@@ -90,11 +90,10 @@ function insertDocuments(db, documents) {
         const collection = dbo.collection(dbCollection);
         collection.insertMany( documents, function(err, result) {
             if (err) {
-              reject(err);
+                reject(err);
             } else {
-              dbo.adminCommand({setParameter:true,textSearchEnabled:true});
               collection.ensureIndex({name:"text"});
-              resolve(result);
+                resolve(result);
             }
         });
     });
