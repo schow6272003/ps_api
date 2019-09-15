@@ -146,7 +146,8 @@ function parseArray(records) {
     }).then(function(res){
       db = res;
       const dbo = db.db(dbName);
-      dbo.collection(dbCollection).createIndexes([{name:"text"},{cbsa_id: 1}]);
+      dbo.collection(dbCollection).createIndex([{name:"text"}]);
+      dbo.collection(dbCollection).createIndex([{cbsa_id: 1}]);
       db.close();
       callback(null, "Migrate completed!");
     }).catch(function(err) {
