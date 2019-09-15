@@ -6,8 +6,6 @@ const fs          = require('fs');
 const CBSAV1 = require("./routes/cbsa/cbsa_routes_v1");
 const cors = require('cors');
 const bodyParser = require('body-parser');
-var redis = require("redis"),
-    client = redis.createClient();
 
 
 // ===== HTTPS START =========================================================
@@ -18,8 +16,8 @@ var redis = require("redis"),
 //     cert: fs.readFileSync('../ssh-key/mapin7.crt')
 // }, app).listen(port);
 
-//  const server = http.createServer(app);
-//   server.listen(port);
+ const server = http.createServer(app);
+  server.listen(port);
 // ===== HTTPS END =========================================================
 
 
@@ -53,8 +51,8 @@ app.get("/", function(req,res){
 
 app.use('/api', CBSAV1);
 
-// app.use(function(req, res) {
-//  res.status(403).json({message: "Forbidden"});
-// });
+app.use(function(req, res) {
+ res.status(403).json({message: "Forbidden"});
+});
 
-app.listen(port);
+// app.listen(port);
