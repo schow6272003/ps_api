@@ -1,5 +1,7 @@
 const MongoClient = require('mongodb').MongoClient;
 const Sequelize = require('sequelize');
+const redis = require("redis").createClient();
+
 // environment files
 require('dotenv').config();
 const url = (process.env.MONGODB_URI) ? process.env.MONGODB_URI :  process.env.MONGODB_HOST;
@@ -26,7 +28,15 @@ function createDocuments() {
         const queryCBSADB = "select cbsa_id, name from cbsa_to_msa";
         const queryZip = "select zip_code, cbsa_id from zip_to_cbsa";
         const queryPop = "select cbsa_id, year, number from population";
-        const sequelize = new Sequelize(process.env.DB, process.env.DB_USER, process.env.DB_PASS, {
+        let cbsa, sequelize;
+        if (process.env.DATABASE_URL) {
+          // Heroku database
+          sequelize = new Sequelize(process.env.DATABASE_URL, {
+            dialect:  'postgres',
+            protocol: 'postgres'
+          });
+        } else {
+          sequelize =  new Sequelize(process.env.DB, process.env.DB_USER, process.env.DB_PASS, {
             host: process.env.DB_HOST,
             port: 5432,
             dialect: 'postgres',
@@ -36,8 +46,8 @@ function createDocuments() {
             min: 0,
             idle: 10000
             }
-        })
-        let cbsa;
+          })
+        }
 
          sequelize.query(queryCBSADB, { type: sequelize.QueryTypes.SELECT}).then(function(records) {
            cbsa = records;
@@ -100,7 +110,6 @@ function insertDocuments(db, documents) {
 }
 
 function isRequestValid(arg) {
-    console.log(arg);
   if (!arg) {
     return false;
   } else if (!arg.cbsa_ids && !arg.zip_codes && !arg.name){
@@ -164,21 +173,41 @@ function parseArray(records) {
             let cbsaIds = parseArray(arg.cbsa_ids);
             let zipCodes = parseArray(arg.zip_codes);
             let nameText = arg.name;
-            let query = (nameText) ? {$text:{$search:nameText}} : {$or: [ {"cbsa_id": {$in: cbsaIds }}, {"zip_code": {$in: zipCodes}}] };
-            connectToMongo().then(function(db){
-            let dbo = db.db(dbName);
-            dbo.collection(dbCollection).find(query).toArray(function(err, res) {
-                db.close();
-                if (err)
-                reject(err); 
-                else {
-                    resolve(res);
+            let query, redisCachedKey;
+            if (nameText) {
+              redisCachedKey = "text-name-search-" + nameText.replace(/\s+/g,"-");
+              query = {$text:{$search:nameText}} ;
+            } else {
+              redisCachedKey =  "query-" + 
+                                "cbsa_ids-"  + cbsaIds.reduce((s, r) => { return s + r.toString() + "-" }, "") +
+                                "zipcodes-" +  zipCodes.reduce((s, r) => { return s + r.toString() + "-" }, "")
+              query = {$or: [ {"cbsa_id": {$in: cbsaIds }}, {"zip_code": {$in: zipCodes}}] };
+            }
+              console.log(redisCachedKey);
+              redis.get(redisCachedKey, function (err, res) {
+                if (err) {
+                  eject({status: 500, message: err}); 
+                } else if (res) {
+                  resolve({status: 200, result: JSON.parse(res)});
+                } else {
+                  connectToMongo().then(function(db){
+                    let dbo = db.db(dbName);
+                    dbo.collection(dbCollection).find(query).toArray(function(err, res) {
+                        db.close();
+                        if (err)
+                          reject({status: 500, message: err}); 
+                        else {
+                          redis.set(redisCachedKey, JSON.stringify(res), function () {
+                            resolve({status: 200, result: res});
+                          }); 
+                        }
+                    });
+                  }).catch(function(err) {
+                   reject({status: 500, message: err}); 
+                  });
                 }
-            });
-        
-            }).catch(function(err) {
-            reject(err); 
-            })
+              }); // redis get
+  
         }
     });
     return promise;
