@@ -1,6 +1,7 @@
 const MongoClient = require('mongodb').MongoClient;
 const Sequelize = require('sequelize');
-const redis = require("redis").createClient();
+const redisMod = require("redis");
+const redis = (process.env.REDIS_URL) ? redisMod.createClient(process.env.REDIS_URL) : redisMod.createClient();
 
 // environment files
 require('dotenv').config();
