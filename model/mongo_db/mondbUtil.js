@@ -142,8 +142,14 @@ function parseArray(records) {
     }).then(function(documents){
       return insertDocuments(db, documents);
     }).then(function(res){
-       db.close();
-       callback(null, res);
+      db.close();
+      return connectToMongo();
+    }).then(function(res){
+      db = res;
+      const dbo = db.db(dbName);
+      dbo.collection(dbCollection).createIndex([{name:"text"}]);
+      db.close();
+      callback(null, res);
     }).catch(function(err) {
        db.close();
        callback(err);
