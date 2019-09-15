@@ -2,7 +2,7 @@ const MongoClient = require('mongodb').MongoClient;
 const Sequelize = require('sequelize');
 // environment files
 require('dotenv').config();
-const url = process.env.MONGODB_HOST;
+const url = (process.env.MONGODB_URI) ? process.env.MONGODB_URI :  process.env.MONGODB_HOST;
 const dbName = process.env.MONGODB;
 const dbCollection = process.env.MONGDB_COLLECTION;
 
