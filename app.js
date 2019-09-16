@@ -21,7 +21,7 @@ const RateLimiter = require('./tools/limiter.js');
   server.listen(port);
 // ===== HTTPS END =========================================================
 
-
+app.use(cors({ allowedHeaders: ["Origin, X-Requested-With, Content-Type, Accept"]}));
 app.use(bodyParser.json({limit: '50mb'})); // support json encoded bodies
 app.use(bodyParser.urlencoded({ limit: '50mb', extended: true, parameterLimit: 1000000 })); // support encoded bodies
 
@@ -31,13 +31,7 @@ app.use(function(req, res, next) {
  next();
 });
 
-
-// app.get("/", function(req,res){
-
-// });
-
 app.use('/api', RateLimiter.ipAddress(),CBSAV1);
-
 app.use(function(req, res) {
  res.status(403).json({message: "Forbidden"});
 });
