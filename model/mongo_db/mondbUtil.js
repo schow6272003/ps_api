@@ -184,7 +184,7 @@ function parseArray(records) {
                                 "zipcodes-" +  zipCodes.reduce((s, r) => { return s + r.toString() + "-" }, "")
               query = {$or: [ {"cbsa_id": {$in: cbsaIds }}, {"zip_code": {$in: zipCodes}}] };
             }
-              console.log(redisCachedKey);
+
               redis.get(redisCachedKey, function (err, res) {
                 if (err) {
                   eject({status: 500, message: err}); 
