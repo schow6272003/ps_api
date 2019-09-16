@@ -6,6 +6,7 @@ const fs          = require('fs');
 const CBSAV1 = require("./routes/cbsa/cbsa_routes_v1");
 const cors = require('cors');
 const bodyParser = require('body-parser');
+const RateLimiter = require('./tools/limiter.js');
 
 
 // ===== HTTPS START =========================================================
@@ -35,7 +36,7 @@ app.use(function(req, res, next) {
 
 // });
 
-app.use('/api', CBSAV1);
+app.use('/api', RateLimiter.ipAddress(),CBSAV1);
 
 app.use(function(req, res) {
  res.status(403).json({message: "Forbidden"});
