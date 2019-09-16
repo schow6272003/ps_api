@@ -20,6 +20,7 @@
     "csv-parser": "^2.3.0",
     "dotenv": "^8.1.0",
     "express": "^4.17.1",
+    "express-limiter": "^1.6.1",
     "mongodb": "^3.3.2",
     "nodemon": "^1.19.2",
     "pg": "^7.12.1",
