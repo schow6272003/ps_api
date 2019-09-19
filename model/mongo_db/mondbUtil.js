@@ -171,8 +171,8 @@ function parseArray(records) {
         if (!isRequestValid(arg)) {
             reject({status: 400, message: "Bad Request"});
         } else {
-            let cbsaIds = parseArray(arg.cbsa_ids);
-            let zipCodes = parseArray(arg.zip_codes);
+            let cbsaIds = parseArray(arg.cbsa_ids).map((r) => {return Number(r)});
+            let zipCodes = parseArray(arg.zip_codes).map((r) => {return Number(r)});
             let nameText = arg.name;
             let query, redisCachedKey;
             if (nameText) {
@@ -183,8 +183,10 @@ function parseArray(records) {
                                 "cbsa_ids-"  + cbsaIds.reduce((s, r) => { return s + r.toString() + "-" }, "") +
                                 "zipcodes-" +  zipCodes.reduce((s, r) => { return s + r.toString() + "-" }, "")
               query = {$or: [ {"cbsa_id": {$in: cbsaIds }}, {"zip_code": {$in: zipCodes}}] };
+              
             }
 
+              query = {$or: [ {"zip_code": {$in: zipCodes}}] };
               redis.get(redisCachedKey, function (err, res) {
                 if (err) {
                   eject({status: 500, message: err}); 
