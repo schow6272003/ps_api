@@ -12,26 +12,24 @@ function PostGresUtils(){};
 
 function connectToPostGres() {
   let promise = new Promise(function(resolve, reject){
-     let sequelize
-
+    let sequelize;
     if (process.env.DATABASE_URL) {
-        sequelize = new Sequelize(process.env.DATABASE_URL, {
-          dialect:  'postgres',
-          protocol: 'postgres'
-        })
-      } else {
-        sequelize = new Sequelize('peerstreet', process.env.DB_USER, 'password', {
-            host: process.env.DB_HOST,
-            port: 5432,
-            dialect: 'postgres',
-            logging: false,
-            pool: {
-              max: 90,
+     sequelize = new Sequelize(process.env.DATABASE_URL, {
+      dialect:  'postgres',
+      protocol: 'postgres'
+     });
+    } else {
+     sequelize = new Sequelize('peerstreet', process.env.DB_USER, 'password', {
+      host: process.env.DB_HOST,
+      port: 5432,
+      dialect: 'postgres',
+      logging: false,
+      pool: { max: 90,
               min: 0,
               idle: 10000
             }
-          })
-      }
+     });
+    }
     resolve(sequelize);
   });
   return promise;
@@ -65,7 +63,6 @@ const getZipToCBSA = () => {
     })
     return promise;
  };
-
 
 const getCBSAToMSA = (arg) => {
     let promise = new Promise((resolve, reject) => {
@@ -154,17 +151,14 @@ const getCBSAToMSA = (arg) => {
          for (let i = 0; i < popeEstimates.length ; i++) {
            replacementPopulation.push([popeEstimates[i][0],cbsa_id, popeEstimates[i][1]]);
          }
- 
          replacementArray.push([name, cbsa_id]);
        })
- 
  
        // population estimate
        let replacementStringPop = replacementPopulation.map(a => '(?)').join(',');
        let instertStringPop =  'insert into population ( year, cbsa_id, number ) values '+ replacementStringPop;
  
        // zip 
- 
        zipKeys.forEach((key) => {
            let cbsaId = zipMap[key];
            if (cbsaMap[cbsaId].mapTo) {
