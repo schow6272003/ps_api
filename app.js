@@ -32,7 +32,7 @@ app.use(function(req, res, next) {
 });
 app.use(morgan('combined'));
 
-app.use('/api', RateLimiter.ipAddress(),CBSAV1);
+// app.use('/api', RateLimiter.ipAddress(),CBSAV1);
 app.use('/api', CBSAV1);
 app.use(function(req, res) {
  res.status(403).json({message: "Forbidden"});
