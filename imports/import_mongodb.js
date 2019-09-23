@@ -1,4 +1,5 @@
-const MongoDbUtils = require('../model/mongo_db/mondbUtil.js');
+'use strict';
+const MongoDbUtils = require('../utilities/mongo_db/mondbUtil.js');
 
 // Create mongodb database, collection and 
 // migrate CBSA records from Postgres database.

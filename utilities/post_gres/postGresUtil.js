@@ -1,3 +1,4 @@
+'use strict';
 const Sequelize = require('sequelize');
 const csv = require('csv-parser');
 const async = require('async');
@@ -10,8 +11,8 @@ const MetStatString=process.env.MetStatString;
 
 function PostGresUtils(){};
 
-function connectToPostGres() {
-  let promise = new Promise(function(resolve, reject){
+const connectToPostGres = ()  => {
+  let promise = new Promise((resolve, reject) => {
     let sequelize;
     if (process.env.DATABASE_URL) {
      sequelize = new Sequelize(process.env.DATABASE_URL, {
@@ -19,7 +20,7 @@ function connectToPostGres() {
       protocol: 'postgres'
      });
     } else {
-     sequelize = new Sequelize('peerstreet', process.env.DB_USER, 'password', {
+     sequelize = new Sequelize(process.env.DB, process.env.DB_USER, process.env.DB_PASS, {
       host: process.env.DB_HOST,
       port: 5432,
       dialect: 'postgres',
@@ -48,7 +49,7 @@ const getZipToCBSA = () => {
                 records = response.records,
                 result = {};
                 
-                for (i = 0; i < records.length; i++ ) {
+                for (let i = 0; i < records.length; i++ ) {
                    let row = records[i];
                    if (row['CBSA'] != '99999') {
                        zipHash[row[zipKey]] = row['CBSA'];
@@ -98,7 +99,6 @@ const getCBSAToMSA = (arg) => {
           }
         });
     })
-    
     return promise;
  };
 
@@ -123,6 +123,22 @@ const getCBSAToMSA = (arg) => {
       }
   }
 
+  const cleanTables = (sequelize) => {
+    let promise = new Promise((resolve,reject) => {
+      let promises = [];
+      let tables = ["cbsa_to_msa", "population", "zip_to_cbsa"]
+      
+      for (let i = 0; i < tables.length ; i++) {
+        promises.push( sequelize.query("delete from " + tables[i]) );
+      }
+      Promise.all(promises).then((res) => {
+         resolve(res)
+      }).catch((err)=>{
+         reject(err)
+      })
+    })
+    return promise;
+  }
   const SyncToMSADB  = (sequelize, arg) => {
     let promise = new Promise((resolve, reject)  => {
        let keys = Object.keys(arg.cbsaMap);
@@ -133,6 +149,7 @@ const getCBSAToMSA = (arg) => {
        let replacementArray = [];
        let replacementPopulation = [];
        let replacementZip = [];
+       let timeNow = new Date();
  
        for (let i = 0 ; i < keys.length ; i++) {
          let key = keys[i];
@@ -142,36 +159,35 @@ const getCBSAToMSA = (arg) => {
        }
        
        let replacmentString = records.map(a => '(?)').join(',');
-       let insertString = 'insert into cbsa_to_msa ( name, cbsa_id ) values '+ replacmentString;
+       let insertString = 'insert into cbsa_to_msa ( name, cbsa_id, created_at, updated_at ) values '+ replacmentString;
  
        records.forEach((r) => {
          let name = (r.name) ?   r.name  : null ;
          let cbsa_id = (r.mapTo) ?  r.mapTo : null;
          let popeEstimates = r.popeEstimates;
          for (let i = 0; i < popeEstimates.length ; i++) {
-           replacementPopulation.push([popeEstimates[i][0],cbsa_id, popeEstimates[i][1]]);
+           replacementPopulation.push([popeEstimates[i][0],cbsa_id, popeEstimates[i][1], timeNow, timeNow]);
          }
-         replacementArray.push([name, cbsa_id]);
+         replacementArray.push([name, cbsa_id, timeNow, timeNow]);
        })
  
        // population estimate
        let replacementStringPop = replacementPopulation.map(a => '(?)').join(',');
-       let instertStringPop =  'insert into population ( year, cbsa_id, number ) values '+ replacementStringPop;
+       let instertStringPop =  'insert into population ( year, cbsa_id, number, created_at, updated_at  ) values '+ replacementStringPop;
  
        // zip 
        zipKeys.forEach((key) => {
            let cbsaId = zipMap[key];
            if (cbsaMap[cbsaId].mapTo) {
-             replacementZip.push([key, cbsaMap[cbsaId].mapTo]);
+             replacementZip.push([key, cbsaMap[cbsaId].mapTo, timeNow, timeNow]);
            }
        });
        
        let replacementStringZip = replacementZip.map(a => '(?)').join(',');
-       let instertStringZip =  'insert into zip_to_cbsa ( zip_code, cbsa_id ) values '+ replacementStringZip;
+       let instertStringZip =  'insert into zip_to_cbsa ( zip_code, cbsa_id, created_at, updated_at ) values '+ replacementStringZip;
  
-       sequelize.query(insertString, {
-         replacements: replacementArray,
-         type: Sequelize.QueryTypes.INSERT
+       cleanTables(sequelize).then((res) => {
+         return sequelize.query(insertString, {replacements: replacementArray,type: Sequelize.QueryTypes.INSERT});
        }).then(function(response) {
          return  sequelize.query(instertStringPop, { replacements: replacementPopulation, type: Sequelize.QueryTypes.INSERT })
        }).then((response) => {
