@@ -1,8 +1,8 @@
+'use strict';
 const MongoClient = require('mongodb').MongoClient;
 const Sequelize = require('sequelize');
 const redisMod = require("redis");
 const redis = (process.env.REDIS_URL) ? redisMod.createClient(process.env.REDIS_URL) : redisMod.createClient();
-
 // environment files
 require('dotenv').config();
 const url = (process.env.MONGODB_URI) ? process.env.MONGODB_URI :  process.env.MONGODB_HOST;
@@ -77,7 +77,7 @@ function createDocuments() {
                  if (!o[key]) {
                    o[key] = [];
                  } 
-                 o[key].push({year: r.year, number: r.number}); 
+                 o[key].push({year: r.year, number: Number(r.number)}); 
                  return o;
              }, {});
  
@@ -125,18 +125,33 @@ function parseArray(records) {
   return result;
 }
 
+const dropCollection = function(collectionName, dbo) { 
+  let promise = new Promise(function(resolve, reject) {
+      dbo.collection(collectionName).drop(function(err, res) {
+          if (err) {
+            reject(err);
+          } else {
+            resolve(res);
+          }
+      });
+  })
+  return promise; 
+};
  MongoDbUtils.createCollection = function(callback) {
-    connectToMongo().then(function(db){
-        let dbo = db.db(dbName);
-        dbo.createCollection(dbCollection, function(err, res) {
-            db.close();
-            if (err) {
-                callback(err);
-            } else {
-                callback(null, res);
-            }
-          db.close();
-        });
+     let dbo, db;
+    connectToMongo().then(function(dbRes){
+      db = dbRes;
+      dbo = db.db(dbName);
+      return dropCollection(dbCollection, dbo);
+    }).then(function(res){
+      dbo.createCollection(dbCollection, function(err, res) {
+        db.close();
+        if (err) {
+            callback(err);
+        } else {
+            callback(null, res);
+        }
+     });
     }).catch(function(err) {
         console.log(err);
         callback(err)
@@ -166,12 +181,54 @@ function parseArray(records) {
     })
   }
 
+  MongoDbUtils.searchDocumentsNoRedis = function(arg, callback)  {
+    let promise = new Promise(function(resolve, reject) {
+        if (!isRequestValid(arg)) {
+            reject({status: 400, message: "Bad Request"});
+        } else {
+            console.log(arg);
+            let cbsaIds = parseArray(arg.cbsa_ids).map((r) => {return Number(r)});
+            let zipCodes = parseArray(arg.zip_codes).map((r) => {return Number(r)});
+            
+            let nameText = arg.name;
+            let query, redisCachedKey;
+            if (nameText) {
+              redisCachedKey = "text-name-search-" + nameText.replace(/\s+/g,"-");
+              query = {$text:{$search:nameText}} ;
+            } else {
+              redisCachedKey =  "query-" + 
+                                "cbsa_ids-"  + cbsaIds.reduce((s, r) => { return s + r.toString() + "-" }, "") +
+                                "zipcodes-" +  zipCodes.reduce((s, r) => { return s + r.toString() + "-" }, "")
+              query = {$or: [ {"cbsa_id": {$in: cbsaIds }}, {"zip_code": {$in: zipCodes}}] };
+              
+            }
+            console.log(query);
+              connectToMongo().then(function(db){
+                let dbo = db.db(dbName);
+                console.log(dbo)
+                dbo.collection(dbCollection).find(query).toArray(function(err, res) {
+                    db.close();
+                    if (err)
+                      reject({status: 500, message: err}); 
+                    else {
+                      console.log(res);
+                      resolve({status: 200, result: res});
+                    }
+                });
+              }).catch(function(err) {
+                reject({status: 500, message: err}); 
+              });
+        }
+    });
+    return promise;
+  }
+
   MongoDbUtils.searchDocuments = function(arg, callback)  {
     let promise = new Promise(function(resolve, reject) {
         if (!isRequestValid(arg)) {
             reject({status: 400, message: "Bad Request"});
         } else {
-            let cbsaIds = parseArray(arg.cbsa_ids).map((r) => {return Number(r)});
+            let cbsaIds = parseArray(arg.cbsa_ids).map((r) => {return Number(r) });
             let zipCodes = parseArray(arg.zip_codes).map((r) => {return Number(r)});
             let nameText = arg.name;
             let query, redisCachedKey;
@@ -185,8 +242,7 @@ function parseArray(records) {
               query = {$or: [ {"cbsa_id": {$in: cbsaIds }}, {"zip_code": {$in: zipCodes}}] };
               
             }
-
-              query = {$or: [ {"zip_code": {$in: zipCodes}}] };
+              console.log(query);
               redis.get(redisCachedKey, function (err, res) {
                 if (err) {
                   eject({status: 500, message: err}); 
@@ -215,5 +271,21 @@ function parseArray(records) {
     });
     return promise;
   }
+
+  MongoDbUtils.showAll = function(arg, callback) {
+    connectToMongo().then(function(db){
+       let dbo = db.db(dbName);
+       dbo.collection(dbCollection).find(arg).toArray(function(err, res) {
+           db.close();
+           if (err)
+           callback(err);
+           else {
+             callback(null, res);
+           }
+       });
+     }).catch(function(err) {
+       callback(err);
+     });
+ };
   
 module.exports = MongoDbUtils;
