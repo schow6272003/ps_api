@@ -3,7 +3,7 @@ const express = require("express");
 const router = express.Router();
 const MongoDbUtils = require('../../utilities/mongo_db/mondbUtil.js');
 
-router.get("/cbsa", (req, res, next) => {
+router.get("/v1/cbsa/find", (req, res, next) => {
   let request = (Object.keys(req.body).length > 0) ? req.body : req.query;
   if (request.reddis_option == "no") {
     MongoDbUtils.searchDocumentsNoRedis(request)

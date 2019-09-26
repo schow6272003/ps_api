@@ -206,8 +206,8 @@ MongoDbUtils.searchDocuments = function(arg, callback)  {
       if (!helpers.isRequestValid(arg)) {
         reject({status: 400, message: "Bad Request"});
       } else {
-        let cbsaIds = parseArray(arg.cbsa_ids).map((r) => {return Number(r) });
-        let zipCodes = parseArray(arg.zip_codes).map((r) => {return Number(r)});
+        let cbsaIds = helpers.parseArray(arg.cbsa_ids).map((r) => {return Number(r)});
+        let zipCodes = helpers.parseArray(arg.zip_codes).map((r) => {return Number(r)});
         let nameText = arg.name;
         let query, redisCachedKey;
         if (nameText) {
