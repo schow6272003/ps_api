@@ -8,14 +8,14 @@ This is to implement Restful API server for PeerStreet Challenge.
   - multiple values are alowed  on zip code and cbsa code fields.
   - Enable to use keyword to search against MSA name.
   
- ## Stack:
+ ## Stack
    - Node.js
    - Postgres 
    - MongoDB
    - Redis
 
-##Design:
-###Database:
+## Design
+### Database:
 
     The tasks of querying(input) and storage(ouput) are designated to two separate resources respectfully. Postgres handles storage of CBSA data  dumped remotely  AWS Url . The records from Postgres are parsed into Json format and migrated to MongoDB. Incoming api requests are handled on MongoDB database. Redis caching is used to optimize performance.
 
@@ -35,7 +35,7 @@ This is to implement Restful API server for PeerStreet Challenge.
     - Add Pagination to endpoints.
     - Add authentication to secure endpoint.
 
-## Usage:
+## Usage
  
  ### Send Request
 ```
@@ -69,12 +69,12 @@ This is to implement Restful API server for PeerStreet Challenge.
    | :------------ |:--------------- |:----- |
    | id   | Primary Key | String|
    | count | # of Records | Integer|
-   | cbsa_id | CBSA Code | Integer|
-   | zip_code |  Zip Code | Array |
-   |  name | MSA Name | String|
-   | pop_estimate | Populations | Array |
-   | pop_estimate[year] | Year | Integer|
-   | pop_estimate[number] | # of Population Per Year | Integer|
+   | records[][cbsa_id] | CBSA Code | Integer|
+   | records[][zip_code] |  Zip Code | Array |
+   | records[][name] | MSA Name | String|
+   | records[][pop_estimate] | Populations | Array |
+   | records[][pop_estimate][year] | Year | Integer|
+   | records[][pop_estimate][number] | # of Population Per Year | Integer|
 
 
 #### Returned Json response:
