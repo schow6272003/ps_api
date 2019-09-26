@@ -3,6 +3,11 @@
 ## Overview
 This is to implement Restful API server for PeerStreet Challenge.
 
+### Repositories:
+  - [PeerStreet Challenge](https://github.com/schow6272003/peer_street_challenge)
+  - [Ruby Client Gem](https://github.com/schow6272003/ps_gem.git)
+  - [Demo Site](https://github.com/schow6272003/ps_app)
+
 ## Features
   - User can search CBSA records with either zip code, cbsa code or MSA name.
   - multiple values are alowed  on zip code and cbsa code fields.
