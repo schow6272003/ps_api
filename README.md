@@ -3,7 +3,7 @@
 ## Overview
 This is to implement Restful API server for PeerStreet Challenge.
 
-##Features:
+## Features
   - User can search CBSA records with either zip code, cbsa code or MSA name.
   - multiple values are alowed  on zip code and cbsa code fields.
   - Enable to use keyword to search against MSA name.
@@ -19,16 +19,16 @@ This is to implement Restful API server for PeerStreet Challenge.
 
     The tasks of querying(input) and storage(ouput) are designated to two separate resources respectfully. Postgres handles storage of CBSA data  dumped remotely  AWS Url . The records from Postgres are parsed into Json format and migrated to MongoDB. Incoming api requests are handled on MongoDB database. Redis caching is used to optimize performance.
 
-###Data Import:
+### Data Import:
     CBSA raw data are pulled remotely via AWS Url and dumped into Postgres for storage. 
-###Security:
+### Security:
     - Cross-origin resource sharing enable.
     - HTTPS/SSL.
     - Rating Limiting.
     - Basic security measures are implemented via node plug-in "helmet".
 ### Versioning:
     Versioning is defined on uri, in order to facilitate and manage changes  on API.
-      eg:  /api/v1/cpsa/....
+    eg: /api/v1/cpsa/....
 ### Improvemnts: 
     - Backend jobs to do regular update on databases.
     - AWS Beantalk and DynamoDB instead of Heroku to accomodate scaling and performance.
@@ -54,11 +54,11 @@ This is to implement Restful API server for PeerStreet Challenge.
  https://pstreet-api.herokuapp.com/api/v1/cbsa/find?cbsa_ids[]=11260
 ```
 ```
-   {
-    cbsa_ids: [11260, 1150],
-    zip_codes: [91820, 3433],
-    name: "Mar Visa"
-   }
+{
+  cbsa_ids: [11260, 1150],
+  zip_codes: [91820, 3433],
+  name: "Mar Visa"
+}
  ```
 
 ### Response
