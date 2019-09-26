@@ -20,18 +20,18 @@ The tasks of querying(input) and storage(ouput) are designated to two separate r
 ### Data Import:
 CBSA raw data are pulled remotely via AWS Url and dumped into Postgres for storage. 
 ### Security:
-    - Cross-origin resource sharing enable.
-    - HTTPS/SSL.
-    - Rating Limiting.
-    - Basic security measures are implemented via node plug-in "helmet".
+- Cross-origin resource sharing enable.
+- HTTPS/SSL.
+- Rating Limiting.
+- Basic security measures are implemented via node plug-in "helmet".
 ### Versioning:
 Versioning is defined on uri, in order to facilitate and manage changes  on API.
 eg: /api/v1/cpsa/....
 ### Improvemnts: 
-    - Backend jobs to do regular update on databases.
-    - AWS Beantalk and DynamoDB instead of Heroku to accomodate scaling and performance.
-    - Add Pagination to endpoints.
-    - Add authentication to secure endpoint.
+- Backend jobs to do regular update on databases.
+- AWS Beantalk and DynamoDB instead of Heroku to accomodate scaling and performance.
+- Add Pagination to endpoints.
+- Add authentication to secure endpoint.
 
 ## Usage
  
