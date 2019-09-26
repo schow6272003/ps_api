@@ -105,11 +105,11 @@ const readCSV = async (path, callback) => {
     parse( res.data, {
       columns: true,
       skip_empty_lines: true
-    }).on('readable', () => {
+    }).on('readable', function() {
       while (record = this.read()) {
         output.push(record);
       }
-    }).on('end', () => {
+    }).on('end', function() {
       keys = Object.keys(output[0]);
       callback(null, {records: output, keys: keys});
     });
