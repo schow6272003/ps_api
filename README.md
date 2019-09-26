@@ -51,7 +51,7 @@ method: Get
 ```
 https://pstreet-api.herokuapp.com/api/v1/cbsa/find?cbsa_ids[]=11260
 ```
-```
+```javascript
 {
   cbsa_ids: [11260, 1150],
   zip_codes: [91820, 3433],
@@ -76,7 +76,7 @@ https://pstreet-api.herokuapp.com/api/v1/cbsa/find?cbsa_ids[]=11260
 
 
 #### Returned Json response:
-```
+```javascript
 {
   "data": {
     "count": 1,
